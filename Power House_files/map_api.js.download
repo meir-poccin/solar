@@ -1,0 +1,167 @@
+function initMap() {
+if (window.location.pathname == "/" || window.location.pathname == "/sample-page/" ) {
+        google.maps.event.addDomListener(window, 'load', initialize);
+  		google.maps.event.addDomListener(window, 'load', initialize2);
+        function initialize() {
+            var input = document.getElementById('autocomplete_search');
+            var autocomplete = new google.maps.places.Autocomplete(input);
+            autocomplete.addListener('place_changed', function () {
+                var place = autocomplete.getPlace();
+            });
+        }
+  function initialize2() {
+            var input = document.getElementById('autocomplete_search2');
+            var autocomplete = new google.maps.places.Autocomplete(input);
+            autocomplete.addListener('place_changed', function () {
+                var place = autocomplete.getPlace();
+            });
+        }
+  }
+  google.maps.event.addDomListener(window, 'load', initialize3);
+  function initialize3() {
+            var input = document.getElementById('autocomplete_search3');
+            var autocomplete = new google.maps.places.Autocomplete(input);
+            autocomplete.addListener('place_changed', function () {
+                var place = autocomplete.getPlace();
+            });
+        }
+  if (window.location.pathname == "/commercial-property-energy-assessment/") {
+    $(".pop-up-guide").addClass("is-visible");
+  let address = $.cookie("address");
+  // let address = "pune";
+  if (address != undefined) {
+    geocoder = new google.maps.Geocoder();
+    geocode({ address: address });
+
+    let defaultAddress = true;
+
+    $(".getAdress").click(() => {
+      let addressValue = $("#clientAddress").val();
+      if (addressValue != "") {
+        defaultAddress = false;
+        $.cookie("address", addressValue),
+          { path: "/commercial-property-energy-assessment" };
+        geocode({ address: addressValue });
+        $(".pop-up-guide").addClass("is-visible");
+      }
+    });
+    if (window.location.pathname == "/commercial-property-energy-assessment/") {
+      document
+        .getElementById("clientAddress")
+        .addEventListener("keyup", function (event) {
+          event.preventDefault();
+          if (event.keyCode === 13) {
+            geocode({ address: $("#clientAddress").val() });
+            $(".pop-up-guide").addClass("is-visible");
+          }
+        });
+    }
+    function geocode(request) {
+      geocoder
+        .geocode(request)
+        .then((result) => {
+          var data = JSON.stringify(result);
+          
+          data = JSON.parse(data);
+          console.log(data);
+          let fullAddress = defaultAddress
+            ? data.results[0].formatted_address
+            : request.address;
+          $("#clientAddress").val(fullAddress);
+          $.cookie("fullAddress", fullAddress, {
+            path: "/commercial-property-energy-assessment",
+          });
+          data = data.results[0].geometry.location;
+          $.cookie("latitude", data.lat, {
+            path: "/commercial-property-energy-assessment",
+          });
+          $.cookie("longitude", data.lng, {
+            path: "/commercial-property-energy-assessment",
+          });
+          DrawingMap(data.lat, data.lng);
+          $(".addressError").addClass("d-none").text("");
+          $(".addressError2").addClass("d-none");
+          $.removeCookie("addressError");
+        })
+        .catch((e) => {
+          if (e.code == "ZERO_RESULTS") {
+            $(".addressError")
+              .removeClass("d-none")
+              .text("Couldn't Find. " + $("#clientAddress").val());
+            $(".addressError2").removeClass("d-none");
+            $.cookie("addressError", e.code);
+          }
+          $.cookie("latitude", 40.7127753, {
+            path: "/commercial-property-energy-assessment",
+          });
+          $.cookie("longitude", -74.0059728, {
+            path: "/commercial-property-energy-assessment",
+          });
+          DrawingMap(40.7127753, -74.0059728);
+          console.log(e.code);
+        });
+    }
+    function DrawingMap(lat, lng) {
+      var map = new google.maps.Map(document.getElementById("map"), {
+        center: {
+          lat: lat,
+          lng: lng,
+        },
+        zoom: 20,
+        mapTypeId: "hybrid",
+        mapTypeControl: true,
+        mapTypeControlOptions: {
+          style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
+          position: google.maps.ControlPosition.TOP_RIGHT,
+        },
+        fullscreenControl: true,
+        fullscreenControl: {
+          position: google.maps.ControlPosition.RIGHT_TOP,
+        },
+      });
+      var drawingManager = new google.maps.drawing.DrawingManager({
+        drawingControl: true,
+        drawingControlOptions: {
+          position: google.maps.ControlPosition.LEFT_TOP,
+          drawingModes: ["polygon"],
+        },
+        drawingMode: "polygon",
+        polygonOptions: {
+          fillColor: "red",
+          strokeColor: "red",
+          strokeWeight: 1.0,
+          editable: true,
+        },
+      });
+      var infowindow = new google.maps.InfoWindow();
+      google.maps.event.addListener(
+        drawingManager,
+        "polygoncomplete",
+        function (polygon) {
+          var area = google.maps.geometry.spherical.computeArea(
+            polygon.getPath()
+          );
+          $.cookie("area", area.toFixed(2), {
+            path: "/commercial-property-energy-assessment",
+          });
+          // $.cookie("area", area.toFixed(2));
+          infowindow.setContent("Area=" + area.toFixed(2) + " sq meters");
+          infowindow.setPosition(polygon.getPath().getAt(0));
+          infowindow.open(map);
+          document.getElementById("clear").onclick = () => {
+            $.removeCookie("area", {
+              path: "/commercial-property-energy-assessment",
+            });
+            // $.removeCookie("area");
+            infowindow.close();
+            polygon.setMap(null);
+          };
+        }
+      );
+
+      drawingManager.setMap(map);
+    }
+  }
+  }
+}
+window.initMap = initMap;

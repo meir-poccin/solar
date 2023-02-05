@@ -1,0 +1,489 @@
+function findParent(element) {
+  var currentElement = element;
+  for (var i = 0; i <= 20; i++) {
+    if ($(currentElement).hasClass("parent")) {
+      break;
+    }
+    currentElement = $(currentElement).parent();
+  }
+  return currentElement;
+}
+function BlogSearch(element) {
+  var searchText = $(".blog-search-input").val();
+
+  $("article.wpcap-post").each(function () {
+    if (searchText != "") {
+      var fullText = $(this).text();
+      if (fullText.indexOf(searchText) != -1) {
+        $(this).removeClass("d-none");
+      } else {
+        $(this).addClass("d-none");
+      }
+    } else {
+      $(this).removeClass("d-none");
+    }
+  });
+  // RemoveBlankRows();
+}
+function RemoveBlankRows() {
+  $(".elementor-column-gap-no").each(function () {
+    var counter = 0;
+    $(this)
+      .find(
+        ".elementor-column.elementor-col-33.elementor-top-column.elementor-element"
+      )
+      .each(function () {
+        if ($(this).hasClass("d-none")) {
+          counter = counter + 1;
+        }
+      });
+
+    if (counter >= 3) {
+      $(this).parent().addClass("d-none");
+    } else {
+      $(this).parent().removeClass("d-none");
+    }
+  });
+}
+$(document).ready(function () {
+  $(".blog-search-btn").click(function () {
+    BlogSearch(this);
+  });
+  $(".blog-search-input").keypress(function (e) {
+    if (e.which == 13) {
+      BlogSearch(this);
+    }
+  });
+  $(".hide-label").keyup(function () {
+    var inputValue = $(this).val();
+    if (inputValue == "") {
+      $(this).parent().find(".placeholder").removeClass("d-none");
+    } else {
+      $(this).parent().find(".placeholder").addClass("d-none");
+    }
+  });
+  if (window.location.pathname != "/commercial-property-energy-assessment/") {
+    $.removeCookie("id");
+    $.removeCookie("address");
+    $.removeCookie("fullAddress");
+    $.removeCookie("latitude");
+    $.removeCookie("longitude");
+  }
+
+  if ($(".newNavbar").hasClass("sticky")) {
+    $("#phoneId").addClass("navbarPhn2");
+  } else {
+    $("#phoneId").addClass("navbarPhn");
+  }
+
+  if (
+    window.location.pathname == "/thank-you/" ||
+    $("#content").hasClass("page-404")
+  ) {
+    if (screen.width > 500) $(".fixed-footer").addClass("footer-fixed");
+    // $(".h-section-global-spacing").css("padding-top", "125px");
+  } else {
+    $(".fixed-footer").removeClass("footer-fixed");
+  }
+
+  // var settings = {
+  //   url: "http://34.125.73.173/inquiry/get",
+  //   method: "GET",
+  //   timeout: 0,
+  // };
+
+  // $.ajax(settings).done(function (response) {
+  //   console.log(response);
+  // });
+
+  $(".address").keypress(function (e) {
+    if (e.which == 13) {
+      let addressParent = findParent($(this));
+      let address = $(addressParent).find(".address").val();
+      if (address != "") {
+        $(addressParent).find(".findMyPropertyerror").addClass("d-none");
+        $.cookie("address", address);
+        inquiryUpdateData();
+      } else {
+        $(addressParent).find(".findMyPropertyerror").removeClass("d-none");
+      }
+    }
+  });
+
+  $(".findMyProperty").click(function () {
+    let parent = findParent($(this));
+    let address = $(parent).find(".address").val();
+    if (address != "") {
+      $(parent).find(".findMyPropertyerror").addClass("d-none");
+      $.cookie("address", address);
+      inquiryUpdateData();
+    } else {
+      $(parent).find(".findMyPropertyerror").removeClass("d-none");
+    }
+  });
+
+  var get_id = sessionStorage.getItem("pg_id");
+
+  // check page id, then scroll to its div
+  if (get_id) scrollToID(get_id, 100);
+
+  $("#scroll2Click").click(function () {
+    if (window.location.pathname == "/") {
+      $(this).attr("href", "#");
+      $("html, body").animate(
+        {
+          scrollTop: $("#scroll2").offset().top,
+        },
+        100
+      );
+      sessionStorage.removeItem("pg_id");
+    } else {
+      $(this).attr("href", "/");
+      sessionStorage.setItem("pg_id", "#scroll2");
+    }
+  });
+
+  $(".NextFun").click(function () {
+    // $(".progress").focus();
+    let parent = findParent($(this));
+    let parentId = parent.attr("id");
+    let data1 = parent.data("next");
+    let data2 = parent.data("nextwidth");
+    let data3 = parent.data("eq");
+
+    if (parentId == "step-1") {
+      let ifValid = true;
+      console.log($.cookie("area"));
+      if ($.cookie("area") == undefined) {
+        alert("Please select proper area to calculate ");
+        ifValid = false;
+      }
+      if ($("#clientAddress").val() == "") {
+        $(".addressError").removeClass("d-none").text("Required *");
+        ifValid = false;
+      } else {
+        $(".addressError").addClass("d-none").text("");
+      }
+      if ($.cookie("addressError") == "ZERO_RESULTS") {
+        ifValid = false;
+      }
+
+      if (ifValid) {
+        inquiryUpdateData();
+        nextValidFun();
+      }
+    }
+    function nextValidFun() {
+      $("#" + parentId).addClass("d-none");
+      $("#" + data1).removeClass("d-none");
+      $(".progress-bar").css("width", data2);
+      setTimeout(() => {
+        $(".progress .progress-steps:eq(" + data3 + ")")
+          .find(".progress-inSteps")
+          .addClass("accomplished");
+      }, 510);
+    }
+
+    var monthDollar = "";
+    var monthkWh;
+    var consumptionType;
+    var username;
+    var email;
+    var phoneNum;
+    var companyName;
+    var companyPosition;
+    var companyBilling;
+    var address = $.cookie("address");
+
+    if (parentId == "step-2") {
+      let valid = true;
+      monthDollar = $("#monthDollar").val();
+      consumptionType = $("#consumptionType").val();
+      var fName = $("#name").val();
+      var fEmail = $("#email").val();
+
+      if (fName == "" || fEmail == "") {
+        $(".require-input-message")
+          .addClass("mb-2")
+          .empty()
+          .text("Name and Email are required fields!")
+          .removeClass("d-none");
+        valid = false;
+      } else {
+        $(".require-input-message")
+          .removeClass("mb-2")
+          .empty()
+          .addClass("d-none");
+      }
+
+      if (valid) {
+        inquiryUpdateData();
+        nextValidFun();
+        $(".error-message-one").addClass("d-none");
+      }
+    }
+
+    if (parentId == "step-3") {
+      var regex =
+        /^([a-zA-Z0-9_.+-])+\@(([a-zA-Z0-9-])+\.)+([a-zA-Z0-9]{2,4})+$/;
+      regex.test(email);
+      let valid = true;
+      username = $("#name").val();
+      email = $("#email").val();
+      phoneNum = $("#phoneNum").val();
+      companyName = $("#companyName").val();
+      companyPosition = $("#companyPosition").val();
+      companyBilling = $("#companyBilling").val();
+      if (companyName == "") valid = false;
+      else {
+        $("#emailValidation").addClass("d-none");
+      }
+
+      if (valid) {
+        // nextValidFun();
+        $(".loaders").removeClass("d-none");
+        $(".error-message-two").addClass("d-none");
+        $("#step3ConfirmBtn").prop("disabled", true);
+
+        var ob = new Object();
+        ob.Id = $.cookie("id");
+        ob.Name = $("#name").val();
+        ob.CompanyName = $("#companyName").val();
+        ob.Email = $("#email").val();
+        ob.PositionInCompany = $("#companyPosition").val();
+        ob.PhoneNumber = $("#phoneNum").val();
+        ob.CompanyBillingAddress = $("#companyBilling").val();
+        ob.IsExactElectricityPerMonth = $("#checkBoxOne").is(":checked")
+          ? false
+          : true;
+        if ($("#checkBoxThree").is(":checked")) {
+          ob.IsExactElectricityPerMonth = null;
+        }
+        var data = JSON.stringify(ob);
+        $.post(
+          "../wp-content/themes/hugo-wp/post_inquiry.php",
+          {
+            SaveApiData: data,
+          },
+          function (response) {
+            console.log(response);
+            if (response == '"Success"') {
+              $(".loaders").addClass("d-none");
+              // $("#step-5").removeClass("d-none");
+              // $("#step-3").addClass("d-none");
+              // $("#progressHide").addClass("d-none");
+              window.location.href = "/thank-you";
+              $.removeCookie("area");
+              $.removeCookie("id");
+              console.log("Success", response.responseText);
+            } else {
+              $(".loaders").addClass("d-none");
+              $("#step3ConfirmBtn").prop("disabled", false);
+              console.log("Error", response);
+            }
+          }
+        );
+      } else $(".error-message-two").removeClass("d-none");
+      // $("#companyAddressText").text(
+      //   companyBilling == "" ? "NA" : companyBilling
+      // );
+      // $("#phoneNumText").text(phoneNum == "" ? "NA" : phoneNum);
+      // $("#companyNameText").text(companyName == "" ? "NA" : companyName);
+      // $("#emailText").text(email);
+      // $("#AreaText").text($.cookie("area") + " Square meter");
+      // $("#electricityBillText").text($("#monthDollar").val());
+
+      // $("#step3ConfirmBtn").click(() => {
+    }
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  $(".BackFun").click(function () {
+    let parent = findParent($(this));
+    let data1 = parent.data("prev");
+    let data2 = parent.data("prevwidth");
+    let data3 = parent.data("eq");
+    let i = data3 - 1;
+    $("#" + parent.attr("id")).addClass("d-none");
+    $("#" + data1).removeClass("d-none");
+    $(".progress-bar").css("width", data2);
+    $(".progress .progress-steps:eq(" + i + ")")
+      .find(".progress-inSteps")
+      .removeClass("accomplished");
+  });
+
+  $(".second-edit").click(function () {
+    $("#step-4").addClass("d-none");
+    $("#step-2").removeClass("d-none");
+    $(".progress-bar").css("width", "35%");
+    $(".progress .progress-steps:eq(3)")
+      .find(".progress-inSteps")
+      .removeClass("accomplished");
+    $(".progress .progress-steps:eq(2)")
+      .find(".progress-inSteps")
+      .removeClass("accomplished");
+  });
+  // if (window.location.pathname == "/commercial-property-energy-assessment/") {
+  //   console.log($.cookie("address"));
+  //   $.removeCookie("address", { path: "/" });
+  // }
+  $(".modals-toggle").on("click", function (e) {
+    $(".modals").toggleClass("is-visible");
+  });
+
+  let checkedData = [".checked1", ".checked2"];
+  $(checkedData).each((i, data) => {
+    $(data).change(function () {
+      $(data).prop("checked", false);
+      $(this).prop("checked", true);
+    });
+  });
+
+  $("#contactBtn").click(function () {
+    let valid = true;
+    let firstName = $("#contactfn").val();
+    let lastName = $("#contactln").val();
+    let email = $("#contactEmail").val();
+    let phone = $("#contactPhone").val();
+    let message = $("#contactMessage").val();
+    let zipCode = $("#ZipCode").val();
+    if (firstName == "") valid = false;
+    else if (window.location.pathname == "/contact-us/" && lastName == "")
+      valid = false;
+    else if (email == "") valid = false;
+    else if (phone == "" || phone == 0) valid = false;
+
+    if (window.location.pathname == "/landing-page/" && zipCode == "")
+      valid = false;
+
+    if (valid) {
+      $("#error-contact-one").addClass("d-none");
+      $("#error-contact-two").addClass("d-none");
+      $("#error-contact-three").addClass("d-none");
+      var ob = new Object();
+      ob.FirstName = $("#contactfn").val();
+      ob.LastName = $("#contactln").val();
+      ob.Email = $("#contactEmail").val();
+      ob.Phone = $("#contactPhone").val();
+      ob.Message = $("#contactMessage").val();
+      if (window.location.pathname == "/landing-page/") {
+        ob.ZipCode = zipCode;
+      }
+      var data = JSON.stringify(ob);
+      $.post(
+        "../wp-content/themes/hugo-wp/contact_submit.php",
+        {
+          SaveApiData: data,
+        },
+        function (response) {
+          console.log(response);
+          if (response == '"Success"') {
+            if (window.location.pathname == "/contact-us/") {
+              $("#error-contact-three").removeClass("d-none");
+              console.log("Success", response.responseText);
+            } else {
+              window.location.href = "../thank-you-l/";
+            }
+          } else if (response == '"Conflict"') {
+            $("#error-contact-two").removeClass("d-none");
+          }
+        }
+      );
+    } else {
+      $("#error-contact-one").removeClass("d-none");
+      $("#error-contact-two").addClass("d-none");
+      $("#error-contact-three").addClass("d-none");
+    }
+  });
+
+  $("#autocomplete_search3").keypress(function () {
+    let i = $(".pac-container").length;
+    let j = 1;
+    console.log(i);
+    $(".pac-container").each(function () {
+      if (j == i) {
+        $(this).css("height", "64px");
+        $(this).css("overflow", "auto");
+      }
+      j++;
+    });
+  });
+});
+
+// var a = 0;
+// $(window).scroll(function () {
+//   if (window.location.pathname == "/") {
+//     var oTop = $("#counter").offset().top - window.innerHeight;
+//     if (a == 0 && $(window).scrollTop() > oTop) {
+//       $(".counter").each(function () {
+//         let speed = Number($(this).attr("speed"));
+//         let limit = Number($(this).attr("limit"));
+//         setCounter(this, speed, limit);
+//       });
+//       function setCounter(element, speed, limit) {
+//         let count = 0;
+//         let interval = setInterval(() => {
+//           count = count >= limit ? limit : count + speed;
+//           if (count === limit) clearInterval(interval);
+//           $(element).text(count);
+//         }, 1);
+//       }
+//       a = 1;
+//     }
+//   }
+// });
+
+function scrollToID(id, speed) {
+  $("html,body").animate({ scrollTop: $(id).offset().top }, speed);
+  sessionStorage.removeItem("pg_id");
+}
+
+function inquiryUpdateData() {
+  if ($.cookie("id") == undefined) {
+    let ob = new Object();
+    ob.ZipCode = $.cookie("address") != undefined ? $.cookie("address") : "";
+    var data = JSON.stringify(ob);
+  } else {
+    let ob = new Object();
+    ob.Id = $.cookie("id");
+    ob.Location = $.cookie("fullAddress");
+    ob.Latitude = $.cookie("latitude");
+    ob.Longitude = $.cookie("longitude");
+    ob.AreaSize = $.cookie("area") != undefined ? $.cookie("area") : "";
+    ob.AvgElectricityPerMonth = $("#monthDollar").val();
+    ob.IsExactElectricityPerMonth = $("#checkBoxOne").is(":checked")
+      ? false
+      : true;
+    if ($("#checkBoxThree").is(":checked")) {
+      ob.IsExactElectricityPerMonth = null;
+    }
+    ob.KwhPerMonthUsage = $("#monthDollar").val() / 0.2;
+    ob.IsExactKwhPerMonthUsage = true;
+    ob.RoofAge = $("#consumptionType").val();
+    var data = JSON.stringify(ob);
+  }
+  console.log(data);
+  $.ajax({
+    type: "POST",
+    url: "../wp-content/themes/hugo-wp/store_steps_data.php",
+    data: {
+      SaveApiData: data,
+    },
+    success: function (response) {
+      let result = JSON.parse(response);
+      if ($.cookie("id") == undefined) {
+        //sessionStorage.setItem("ID", result.Id);
+        $.cookie("id", result.Id, {
+          path: "/commercial-property-energy-assessment",
+        });
+        window.location.href = "/commercial-property-energy-assessment";
+      }
+    },
+    error: function (xhr, textStatus, error) {
+      console.log(xhr);
+      console.log(textStatus);
+      console.log(error);
+    },
+  });
+}
