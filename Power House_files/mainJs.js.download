@@ -459,6 +459,8 @@ function inquiryUpdateData() {
       ob.IsExactElectricityPerMonth = null;
     }
     ob.KwhPerMonthUsage = $("#monthDollar").val() / 0.2;
+    //new line below
+     ob.KwhPerMonthUsage == 300 &&  ob.KwhPerMonthUsage =  ob.KwhPerMonthUsage * 2
     ob.IsExactKwhPerMonthUsage = true;
     ob.RoofAge = $("#consumptionType").val();
     var data = JSON.stringify(ob);
